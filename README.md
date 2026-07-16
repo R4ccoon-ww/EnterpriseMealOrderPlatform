@@ -1,4 +1,4 @@
-# EnterpriseMealOrderPlatform (WeBox)
+# EnterpriseMealOrderPlatform
 
 企业员工餐食订购平台 — 后端 REST API
 
@@ -24,7 +24,7 @@ docker compose up -d
 # 3.（可选）启用真实 LLM 推荐
 export ANTHROPIC_API_KEY=sk-ant-...
 
-# 4. 端到端验证（30 个断言）
+# 4. 端到端验证（38 个断言）
 sh e2e-test.sh
 ```
 
@@ -66,8 +66,8 @@ TOKEN=$(curl -s -X POST $BASE/auth/login -H "Content-Type: application/json" \
 AUTH="Authorization: Bearer $TOKEN"
 
 # 浏览菜单 / 分类筛选
-curl "$BASE/menu"
-curl "$BASE/menu?category=chinese"
+curl "$BASE/menu" -H "$AUTH"
+curl "$BASE/menu?category=chinese" -H "$AUTH"
 
 # 购物车 → 下单
 curl -X POST $BASE/cart/items -H "$AUTH" -H "Content-Type: application/json" \
@@ -94,7 +94,7 @@ curl -X POST $BASE/recommend -H "$AUTH" -H "Content-Type: application/json" \
 ```
 ├── docker-compose.yml          # MySQL 8 容器
 ├── db/init/schema.sql          # 建表 + 菜品种子数据（容器首次启动自动执行）
-├── e2e-test.sh                 # 端到端验证脚本（30 个断言）
+├── e2e-test.sh                 # 端到端验证脚本（38 个断言）
 └── src/main/
     ├── resources/
     │   ├── application.yml     # 数据源 / JWT / AI 配置
@@ -103,7 +103,7 @@ curl -X POST $BASE/recommend -H "$AUTH" -H "Content-Type: application/json" \
         ├── config/             # WebMvc(JWT拦截器/CORS)、BCrypt、RestTemplate
         ├── common/             # ApiResponse、BizException、全局异常处理
         ├── auth/               # JwtUtil、JwtInterceptor
-        ├── controller/         # Auth / Menu / Cart / Order / Preference / Recommend
+        ├── controller/         # Auth / Menu / Cart / Checkout / Order / Preference / Recommend
         ├── service/            # 业务逻辑（下单事务、偏好过滤、推荐引擎）
         ├── mapper/             # MyBatis Mapper 接口
         ├── entity/             # User / MenuItem / CartItem / Order / OrderItem / UserPreference
@@ -113,7 +113,7 @@ curl -X POST $BASE/recommend -H "$AUTH" -H "Content-Type: application/json" \
 ## 设计说明
 
 - **密码**：BCrypt 加密（仅引入 spring-security-crypto，不引全套 Security）
-- **登录态**：无状态 JWT（HS256，72h 过期），刷新页面不丢失；菜单接口公开但可选解析 token 以启用偏好过滤
+- **登录态**：无状态 JWT（HS256，72h 过期）；仅 `/api/auth/**` 公开，其余所有接口需 JWT
 - **下单**：`@Transactional` 事务内完成建单、订单项价格/名称快照、清空购物车；订单表名用 `orders` 避开 SQL 关键字
 - **偏好过滤**：过敏原硬过滤 + 预算区间过滤 + 偏好菜系置顶排序，`recommend=true` 开关切换"全部/推荐"
 - **AI 推荐降级链**：Claude API（读 `ANTHROPIC_API_KEY`）失败或未配置 → 关键词规则引擎（清淡/高蛋白/辣/日料/实惠等），响应中 `source` 字段标识 `llm` / `rule`
