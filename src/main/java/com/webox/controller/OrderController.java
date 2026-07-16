@@ -24,7 +24,7 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping
+    @PostMapping("/success")
     public ApiResponse<Order> create(@RequestAttribute(JwtInterceptor.ATTR_USER_ID) Long userId,
                                      @Valid @RequestBody CreateOrderRequest req) {
         return ApiResponse.ok(orderService.createFromCart(userId, req));

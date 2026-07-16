@@ -1,6 +1,7 @@
 package com.webox.service;
 
 import com.webox.common.BizException;
+import com.webox.dto.CheckoutResponse;
 import com.webox.dto.CreateOrderRequest;
 import com.webox.entity.CartItem;
 import com.webox.entity.Order;
@@ -22,6 +23,27 @@ public class OrderService {
 
     private final CartItemMapper cartItemMapper;
     private final OrderMapper orderMapper;
+
+    /**
+     * 订单确认页预览：读取购物车内容 + 配送信息，计算金额，不落库。
+     */
+    public CheckoutResponse checkout(Long userId, CreateOrderRequest req) {
+        List<CartItem> cartItems = cartItemMapper.findByUserId(userId);
+        if (cartItems.isEmpty()) {
+            throw new BizException(4004, "购物车为空，无法下单");
+        }
+
+        BigDecimal total = cartItems.stream()
+                .map(c -> c.getPrice().multiply(BigDecimal.valueOf(c.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        int totalQuantity = cartItems.stream().mapToInt(CartItem::getQuantity).sum();
+
+        String deliveryDate = req.getDeliveryDate() != null ? req.getDeliveryDate() : LocalDate.now().toString();
+
+        return new CheckoutResponse(cartItems, total, totalQuantity,
+                deliveryDate, req.getMealPeriod(), req.getDeliveryAddress());
+    }
 
     /**
      * 从购物车生成订单：建单 + 菜品快照 + 清空购物车，整体事务。

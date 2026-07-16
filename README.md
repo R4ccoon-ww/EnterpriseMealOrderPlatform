@@ -45,7 +45,8 @@ sh e2e-test.sh
 | POST | /api/cart/items | 加入购物车 `{menuItemId, quantity}`，重复加数量累加 | JWT |
 | PUT | /api/cart/items/{id} | 修改数量（最小 1） | JWT |
 | DELETE | /api/cart/items/{id} | 删除购物车项 | JWT |
-| POST | /api/orders | 下单 `{deliveryDate?, mealPeriod, deliveryAddress}`（事务：建单+快照+清空购物车） | JWT |
+| POST | /api/checkout | 订单确认页预览（查购物车+配送信息，不落库） | JWT |
+| POST | /api/orders/success | 下单 `{deliveryDate?, mealPeriod, deliveryAddress}`（事务：建单+快照+清空购物车） | JWT |
 | GET | /api/orders | 我的订单列表 | JWT |
 | GET | /api/orders/{id} | 订单详情 | JWT |
 | GET | /api/preferences | 查询偏好 | JWT |
@@ -71,7 +72,7 @@ curl "$BASE/menu?category=chinese"
 # 购物车 → 下单
 curl -X POST $BASE/cart/items -H "$AUTH" -H "Content-Type: application/json" \
   -d '{"menuItemId":"item_006","quantity":2}'
-curl -X POST $BASE/orders -H "$AUTH" -H "Content-Type: application/json" \
+curl -X POST $BASE/orders/success -H "$AUTH" -H "Content-Type: application/json" \
   -d '{"mealPeriod":"lunch","deliveryAddress":"3F-301"}'
 curl "$BASE/orders" -H "$AUTH"
 

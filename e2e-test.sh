@@ -63,14 +63,26 @@ check "update quantity" "$R" '"quantity":5'
 # 总价 = 22*5 + 35*1 = 145
 check "cart total price" "$R" '"totalAmount":145.00'
 
+# 10b. 订单确认页预览（checkout）：只预览不落库
+R=$(printf '{"mealPeriod":"lunch","deliveryAddress":"3F-301 工位"}' | curl -s -X POST $BASE/checkout -H "$AUTH" -H "Content-Type: application/json" --data-binary @-)
+check "checkout preview items" "$R" 'item_006'
+check "checkout total amount" "$R" '"totalAmount":145.00'
+check "checkout total quantity" "$R" '"totalQuantity":6'
+check "checkout delivery date" "$R" '"deliveryDate"'
+check "checkout meal period" "$R" '"mealPeriod":"lunch"'
+check "checkout address" "$R" '"deliveryAddress":"3F-301 工位"'
+# 确认页不应该清空购物车 — 后续下单照常执行应成功
+R=$(curl -s "$BASE/cart" -H "$AUTH")
+check "cart still intact after checkout" "$R" '"totalAmount":145.00'
+
 # 11. 下单
-R=$(printf '{"mealPeriod":"lunch","deliveryAddress":"3F-301 工位"}' | curl -s -X POST $BASE/orders -H "$AUTH" -H "Content-Type: application/json" --data-binary @-)
+R=$(printf '{"mealPeriod":"lunch","deliveryAddress":"3F-301 工位"}' | curl -s -X POST $BASE/orders/success -H "$AUTH" -H "Content-Type: application/json" --data-binary @-)
 check "create order" "$R" '"status":"pending"'
 check "order total snapshot" "$R" '"totalAmount":145.00'
 ORDER_ID=$(echo "$R" | sed -n 's/.*"data":{"id":\([0-9]*\).*/\1/p')
 
 # 12. 下单后购物车已清空 → 再下单报错
-R=$(curl -s -X POST $BASE/orders -H "$AUTH" -H "Content-Type: application/json" -d '{"mealPeriod":"dinner","deliveryAddress":"X"}')
+R=$(curl -s -X POST $BASE/orders/success -H "$AUTH" -H "Content-Type: application/json" -d '{"mealPeriod":"dinner","deliveryAddress":"X"}')
 check "empty cart order rejected" "$R" '"code":4004'
 
 # 13. 订单列表 + 详情
