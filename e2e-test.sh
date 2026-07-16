@@ -31,20 +31,24 @@ check "login" "$R" '"token"'
 TOKEN=$(echo "$R" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
 AUTH="Authorization: Bearer $TOKEN"
 
-# 6. 菜单列表 + 分类筛选
+# 6. 无 token 访问菜单 → 401
 R=$(curl -s "$BASE/menu")
+check "menu without token 401" "$R" '"code":401'
+
+# 7. 菜单列表 + 分类筛选
+R=$(curl -s "$BASE/menu" -H "$AUTH")
 check "menu list has 8 items" "$R" 'item_008'
-R=$(curl -s "$BASE/menu?category=chinese")
+R=$(curl -s "$BASE/menu?category=chinese" -H "$AUTH")
 check "menu filter chinese" "$R" 'item_007'
 if echo "$R" | grep -q 'item_002'; then FAIL=$((FAIL+1)); echo "FAIL: category filter leaked salad"; else PASS=$((PASS+1)); echo "PASS: category filter excludes others"; fi
 
-# 7. 菜品详情 + 404
-R=$(curl -s "$BASE/menu/item_001")
+# 8. 菜品详情 + 404
+R=$(curl -s "$BASE/menu/item_001" -H "$AUTH")
 check "menu detail" "$R" '"peanut"'
-R=$(curl -s "$BASE/menu/item_999")
+R=$(curl -s "$BASE/menu/item_999" -H "$AUTH")
 check "menu detail 404" "$R" '"code":404'
 
-# 8. 无 token 访问购物车 → 401
+# 9. 无 token 访问购物车 → 401
 R=$(curl -s "$BASE/cart")
 check "cart without token 401" "$R" '"code":401'
 

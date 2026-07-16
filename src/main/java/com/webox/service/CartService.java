@@ -9,6 +9,7 @@ import com.webox.mapper.CartItemMapper;
 import com.webox.mapper.MenuItemMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,6 +30,7 @@ public class CartService {
         return new CartResponse(items, total, quantity);
     }
 
+    @Transactional
     public CartResponse add(Long userId, AddCartRequest req) {
         MenuItem menuItem = menuItemMapper.findById(req.getMenuItemId());
         if (menuItem == null || !Boolean.TRUE.equals(menuItem.getAvailable())) {
@@ -48,6 +50,7 @@ public class CartService {
         return getCart(userId);
     }
 
+    @Transactional
     public CartResponse updateQuantity(Long userId, Long cartItemId, int quantity) {
         if (quantity < 1) {
             throw new BizException("数量最小为 1");
@@ -57,6 +60,7 @@ public class CartService {
         return getCart(userId);
     }
 
+    @Transactional
     public CartResponse remove(Long userId, Long cartItemId) {
         requireOwned(userId, cartItemId);
         cartItemMapper.delete(cartItemId);

@@ -39,7 +39,7 @@ public class OrderService {
 
         int totalQuantity = cartItems.stream().mapToInt(CartItem::getQuantity).sum();
 
-        String deliveryDate = req.getDeliveryDate() != null ? req.getDeliveryDate() : LocalDate.now().toString();
+        String deliveryDate = resolveDeliveryDate(req);
 
         return new CheckoutResponse(cartItems, total, totalQuantity,
                 deliveryDate, req.getMealPeriod(), req.getDeliveryAddress());
@@ -62,7 +62,7 @@ public class OrderService {
         Order order = new Order();
         order.setUserId(userId);
         order.setTotalAmount(total);
-        order.setDeliveryDate(req.getDeliveryDate() != null ? req.getDeliveryDate() : LocalDate.now().toString());
+        order.setDeliveryDate(resolveDeliveryDate(req));
         order.setMealPeriod(req.getMealPeriod());
         order.setDeliveryAddress(req.getDeliveryAddress());
         order.setStatus("pending");
@@ -87,6 +87,17 @@ public class OrderService {
 
     public List<Order> listByUser(Long userId) {
         return orderMapper.findByUserId(userId);
+    }
+
+    private String resolveDeliveryDate(CreateOrderRequest req) {
+        if (req.getDeliveryDate() == null) {
+            return LocalDate.now().toString();
+        }
+        try {
+            return LocalDate.parse(req.getDeliveryDate()).toString();
+        } catch (Exception e) {
+            throw new BizException(4005, "配送日期格式不正确，请使用 YYYY-MM-DD");
+        }
     }
 
     public Order getDetail(Long userId, Long orderId) {

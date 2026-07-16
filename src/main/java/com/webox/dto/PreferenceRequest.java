@@ -2,19 +2,26 @@ package com.webox.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Pattern;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
 public class PreferenceRequest {
-    /** 需排除的过敏原，如 ["peanut","dairy"] */
+
     private List<String> allergens;
-    /** 偏好菜系，如 ["chinese","japanese"] */
     private List<String> preferredCategories;
-    /** none | mild | hot */
+
+    @Pattern(regexp = "^(none|mild|hot)$", message = "辣度只能为 none/mild/hot")
     private String spicyLevel;
-    /** light | medium | heavy */
+
+    @Pattern(regexp = "^(light|medium|heavy)$", message = "口味只能为 light/medium/heavy")
     private String taste;
+
+    @DecimalMin(value = "0", message = "预算下限不能为负数")
     private BigDecimal budgetMin;
+
+    @DecimalMin(value = "0", message = "预算上限不能为负数")
     private BigDecimal budgetMax;
 }

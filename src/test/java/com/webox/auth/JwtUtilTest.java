@@ -1,11 +1,12 @@
 package com.webox.auth;
 
+import com.webox.common.BizException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JwtUtilTest {
 
@@ -14,7 +15,7 @@ class JwtUtilTest {
     @BeforeEach
     void setUp() {
         jwtUtil = new JwtUtil();
-        ReflectionTestUtils.setField(jwtUtil, "secret", "test-secret");
+        ReflectionTestUtils.setField(jwtUtil, "secret", "test-secret-at-least-16-chars");
         ReflectionTestUtils.setField(jwtUtil, "expireHours", 1L);
     }
 
@@ -25,23 +26,30 @@ class JwtUtilTest {
     }
 
     @Test
-    void parseInvalidTokenReturnsNull() {
-        assertNull(jwtUtil.parseUserId("not-a-jwt"));
+    void parseInvalidTokenThrows() {
+        BizException e = assertThrows(BizException.class, () -> jwtUtil.parseUserId("not-a-jwt"));
+        assertEquals(401, e.getCode());
     }
 
     @Test
-    void parseTokenSignedWithOtherSecretReturnsNull() {
+    void parseTokenFromOtherSecretThrows() {
         JwtUtil other = new JwtUtil();
-        ReflectionTestUtils.setField(other, "secret", "another-secret");
+        ReflectionTestUtils.setField(other, "secret", "another-test-secret-1234");
         ReflectionTestUtils.setField(other, "expireHours", 1L);
         String token = other.generateToken(1L, "a@b.com");
-        assertNull(jwtUtil.parseUserId(token));
+
+        BizException e = assertThrows(BizException.class, () -> jwtUtil.parseUserId(token));
+        assertEquals(401, e.getCode());
+        assertEquals("Token 无效", e.getMessage());
     }
 
     @Test
-    void parseExpiredTokenReturnsNull() {
+    void parseExpiredTokenThrows() {
         ReflectionTestUtils.setField(jwtUtil, "expireHours", -1L);
         String token = jwtUtil.generateToken(1L, "a@b.com");
-        assertNull(jwtUtil.parseUserId(token));
+
+        BizException e = assertThrows(BizException.class, () -> jwtUtil.parseUserId(token));
+        assertEquals(401, e.getCode());
+        assertEquals("登录已过期，请重新登录", e.getMessage());
     }
 }

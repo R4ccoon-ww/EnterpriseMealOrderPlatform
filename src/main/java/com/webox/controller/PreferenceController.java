@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import javax.validation.Valid;
+
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,7 +29,7 @@ public class PreferenceController {
 
     @PutMapping
     public ApiResponse<UserPreference> save(@RequestAttribute(JwtInterceptor.ATTR_USER_ID) Long userId,
-                                            @RequestBody PreferenceRequest req) {
+                                            @Valid @RequestBody PreferenceRequest req) {
         return ApiResponse.ok(preferenceService.save(userId, req));
     }
 }

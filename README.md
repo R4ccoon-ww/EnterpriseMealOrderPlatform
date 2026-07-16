@@ -39,8 +39,8 @@ sh e2e-test.sh
 |---|---|---|---|
 | POST | /api/auth/register | 注册（email + 密码≥6位 + 姓名） | 公开 |
 | POST | /api/auth/login | 登录，返回 `{token, user}` | 公开 |
-| GET | /api/menu?category=&recommend= | 菜单列表；`category` 分类筛选；`recommend=true` 且带 token 时按偏好过滤排序 | 公开 |
-| GET | /api/menu/{id} | 菜品详情（描述/价格/过敏原） | 公开 |
+| GET | /api/menu?category=&recommend= | 菜单列表；`category` 分类筛选；`recommend` 按偏好过滤排序 | JWT |
+| GET | /api/menu/{id} | 菜品详情（描述/价格/过敏原） | JWT |
 | GET | /api/cart | 购物车列表 + 实时总价 | JWT |
 | POST | /api/cart/items | 加入购物车 `{menuItemId, quantity}`，重复加数量累加 | JWT |
 | PUT | /api/cart/items/{id} | 修改数量（最小 1） | JWT |

@@ -15,10 +15,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 菜单接口公开（未登录可浏览），但 MenuController 会自行可选解析 token 以支持偏好过滤
+        // 仅 /api/auth/** 公开，其余全部需要 JWT
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/auth/**", "/api/menu/**");
+                .excludePathPatterns("/api/auth/**");
     }
 
     @Override
