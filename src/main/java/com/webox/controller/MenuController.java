@@ -29,8 +29,7 @@ public class MenuController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<MenuItem> detail(@RequestAttribute(JwtInterceptor.ATTR_USER_ID) Long userId,
-                                        @PathVariable String id) {
+    public ApiResponse<MenuItem> detail(@PathVariable String id) {
         return ApiResponse.ok(menuService.getById(id));
     }
 }
