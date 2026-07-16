@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webox.mapper.CartItemMapper">
+
+    <sql id="joinSelect">
+        SELECT c.id, c.user_id, c.menu_item_id, c.quantity, c.created_at,
+               m.name, m.price, m.image, m.category
+        FROM cart_item c
+        JOIN menu_item m ON m.id = c.menu_item_id
+    </sql>
+
+    <select id="findByUserId" resultType="com.webox.entity.CartItem">
+        <include refid="joinSelect"/>
+        WHERE c.user_id = #{userId}
+        ORDER BY c.created_at
+    </select>
+
+    <select id="findByIdAndUserId" resultType="com.webox.entity.CartItem">
+        <include refid="joinSelect"/>
+        WHERE c.id = #{id} AND c.user_id = #{userId}
+    </select>
+
+    <select id="findByUserAndMenuItem" resultType="com.webox.entity.CartItem">
+        SELECT * FROM cart_item WHERE user_id = #{userId} AND menu_item_id = #{menuItemId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cart_item (user_id, menu_item_id, quantity)
+        VALUES (#{userId}, #{menuItemId}, #{quantity})
+    </insert>
+
+    <update id="updateQuantity">
+        UPDATE cart_item SET quantity = #{quantity} WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM cart_item WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByUserId">
+        DELETE FROM cart_item WHERE user_id = #{userId}
+    </delete>
+
+</mapper>
